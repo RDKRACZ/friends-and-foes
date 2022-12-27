@@ -1,23 +1,21 @@
 package com.faboslav.friendsandfoes.world.spawner;
 
 import com.faboslav.friendsandfoes.FriendsAndFoes;
-import com.faboslav.friendsandfoes.init.ModEntity;
+import com.faboslav.friendsandfoes.init.FriendsAndFoesEntityTypes;
+import com.faboslav.friendsandfoes.tag.FriendsAndFoesTags;
+import com.faboslav.friendsandfoes.util.RandomGenerator;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.mob.PatrolEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos.Mutable;
-import net.minecraft.util.registry.RegistryEntry;
+import net.minecraft.util.math.random.Random;
 import net.minecraft.world.Heightmap;
 import net.minecraft.world.SpawnHelper;
-import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.Biome.Category;
 import net.minecraft.world.spawner.Spawner;
 
-import java.util.Random;
-
-public class IceologerSpawner implements Spawner
+public final class IceologerSpawner implements Spawner
 {
 	private int cooldown;
 
@@ -40,13 +38,13 @@ public class IceologerSpawner implements Spawner
 			return 0;
 		}
 
-		this.cooldown += 12000 + random.nextInt(1200);
+		this.cooldown += 12000 + RandomGenerator.generateInt(0, 1000);
 		long l = world.getTimeOfDay() / 24000L;
 
 		if (
 			l < 5L
 			|| world.isDay() == false
-			|| random.nextInt(3) != 0
+			|| RandomGenerator.generateInt(0, 1) != 0
 		) {
 			return 0;
 		}
@@ -73,19 +71,12 @@ public class IceologerSpawner implements Spawner
 		var minZ = mutable.getZ() - 10;
 		var maxX = mutable.getX() + 10;
 		var maxZ = mutable.getZ() + 10;
+
 		if (world.isRegionLoaded(minX, minZ, maxX, maxZ) == false) {
 			return 0;
 		}
 
-		RegistryEntry<Biome> registryEntry = world.getBiome(mutable);
-		Category category = Biome.getCategory(registryEntry);
-
-		var precipitation = registryEntry.value().getPrecipitation();
-
-		if (
-			category != Category.TAIGA
-			|| precipitation != Biome.Precipitation.SNOW
-		) {
+		if (world.getBiome(mutable).isIn(FriendsAndFoesTags.HAS_ICEOLOGER) == false) {
 			return 0;
 		}
 
@@ -93,13 +84,13 @@ public class IceologerSpawner implements Spawner
 		BlockState blockState = world.getBlockState(mutable);
 
 		if (
-			SpawnHelper.isClearForSpawn(world, mutable, blockState, blockState.getFluidState(), ModEntity.ICEOLOGER.get()) == false
-			|| PatrolEntity.canSpawn(ModEntity.ICEOLOGER.get(), world, SpawnReason.PATROL, mutable, random) == false
+			SpawnHelper.isClearForSpawn(world, mutable, blockState, blockState.getFluidState(), FriendsAndFoesEntityTypes.ICEOLOGER.get()) == false
+			|| PatrolEntity.canSpawn(FriendsAndFoesEntityTypes.ICEOLOGER.get(), world, SpawnReason.PATROL, mutable, random) == false
 		) {
 			return 0;
 		}
 
-		var iceologer = ModEntity.ICEOLOGER.get().create(world);
+		var iceologer = FriendsAndFoesEntityTypes.ICEOLOGER.get().create(world);
 
 		if (iceologer == null) {
 			return 0;

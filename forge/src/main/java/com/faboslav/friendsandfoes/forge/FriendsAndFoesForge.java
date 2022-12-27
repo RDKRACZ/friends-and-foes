@@ -1,80 +1,142 @@
 package com.faboslav.friendsandfoes.forge;
 
 import com.faboslav.friendsandfoes.FriendsAndFoes;
-import com.faboslav.friendsandfoes.FriendsAndFoesServer;
-import com.faboslav.friendsandfoes.init.ModEntity;
+import com.faboslav.friendsandfoes.FriendsAndFoesClient;
+import com.faboslav.friendsandfoes.init.FriendsAndFoesEntityTypes;
+import com.faboslav.friendsandfoes.init.FriendsAndFoesStructurePoolElements;
+import com.faboslav.friendsandfoes.platform.forge.RegistryHelperImpl;
+import com.faboslav.friendsandfoes.util.CustomRaidMember;
 import com.faboslav.friendsandfoes.util.ServerWorldSpawnersUtil;
+import com.faboslav.friendsandfoes.util.UpdateChecker;
 import com.faboslav.friendsandfoes.world.spawner.IceologerSpawner;
 import com.faboslav.friendsandfoes.world.spawner.IllusionerSpawner;
-import dev.architectury.platform.Platform;
-import dev.architectury.platform.forge.EventBuses;
-import dev.architectury.utils.Env;
+import net.minecraft.SharedConstants;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.attribute.DefaultAttributeContainer;
+import net.minecraft.item.ItemGroup;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Util;
 import net.minecraft.village.raid.Raid;
-import net.minecraft.world.dimension.DimensionType;
+import net.minecraft.world.dimension.DimensionTypes;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.CreativeModeTabEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.TickEvent.ServerTickEvent;
-import net.minecraftforge.event.world.WorldEvent;
+import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
+import net.minecraftforge.event.level.LevelEvent;
+import net.minecraftforge.event.server.ServerAboutToStartEvent;
+import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLDedicatedServerSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.loading.FMLEnvironment;
+
+import java.util.Map;
+import java.util.function.Supplier;
 
 import static com.faboslav.friendsandfoes.FriendsAndFoes.serverTickDeltaCounter;
 
 @Mod(FriendsAndFoes.MOD_ID)
-@Mod.EventBusSubscriber(modid = FriendsAndFoes.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
-public class FriendsAndFoesForge
+public final class FriendsAndFoesForge
 {
 	public FriendsAndFoesForge() {
-		var modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
-		EventBuses.registerModEventBus(FriendsAndFoes.MOD_ID, modEventBus);
+		UpdateChecker.checkForNewUpdates();
+		FriendsAndFoes.init();
 
-		FriendsAndFoes.initRegisters();
-		FriendsAndFoesForgeClient.init();
+		if (FMLEnvironment.dist == Dist.CLIENT) {
+			FriendsAndFoesClient.init();
+		}
 
-		modEventBus.addListener(FriendsAndFoesForge::init);
-		modEventBus.addListener(FriendsAndFoesForgeClient::clientInit);
-		modEventBus.addListener(FriendsAndFoesForge::serverInit);
+		IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
+
+		RegistryHelperImpl.ACTIVITIES.register(bus);
+		RegistryHelperImpl.BLOCKS.register(bus);
+		FriendsAndFoesEntityTypes.previousUseChoiceTypeRegistrations = SharedConstants.useChoiceTypeRegistrations;
+		SharedConstants.useChoiceTypeRegistrations = false;
+		RegistryHelperImpl.ENTITY_TYPES.register(bus);
+		SharedConstants.useChoiceTypeRegistrations = FriendsAndFoesEntityTypes.previousUseChoiceTypeRegistrations;
+		RegistryHelperImpl.ITEMS.register(bus);
+		RegistryHelperImpl.MEMORY_MODULE_TYPES.register(bus);
+		RegistryHelperImpl.POINT_OF_INTEREST_TYPES.register(bus);
+		RegistryHelperImpl.SOUND_EVENTS.register(bus);
+		RegistryHelperImpl.STRUCTURE_TYPES.register(bus);
+		RegistryHelperImpl.STRUCTURE_PROCESSOR_TYPES.register(bus);
+		RegistryHelperImpl.VILLAGER_PROFESSIONS.register(bus);
+
+		bus.addListener(FriendsAndFoesForge::init);
+		bus.addListener(FriendsAndFoesForge::registerEntityAttributes);
+		bus.addListener(FriendsAndFoesForge::addItemsToTabs);
 
 		var forgeBus = MinecraftForge.EVENT_BUS;
 		forgeBus.addListener(FriendsAndFoesForge::initSpawners);
 		forgeBus.addListener(FriendsAndFoesForge::initTickDeltaCounter);
+		forgeBus.addListener(FriendsAndFoesForge::onServerAboutToStartEvent);
+
+		MinecraftForge.EVENT_BUS.register(this);
 	}
 
 	private static void init(final FMLCommonSetupEvent event) {
-		FriendsAndFoes.initCustomRegisters();
-
-		if (FriendsAndFoes.getConfig().enableIllusionerInRaids) {
-			Raid.Member.create("ILLUSIONER", EntityType.ILLUSIONER, new int[]{0, 0, 0, 0, 1, 0, 1, 1});
-		}
-
-		if (FriendsAndFoes.getConfig().enableIceologerInRaids) {
-			Raid.Member.create("ICEOLOGER", ModEntity.ICEOLOGER.get(), new int[]{0, 0, 0, 0, 1, 1, 0, 1});
-		}
-	}
-
-	private static void serverInit(final FMLDedicatedServerSetupEvent event) {
 		event.enqueueWork(() -> {
-			if (Platform.getEnvironment() != Env.SERVER) {
-				return;
+			FriendsAndFoes.postInit();
+
+			if (FriendsAndFoes.getConfig().enableIceologer && FriendsAndFoes.getConfig().enableIceologerInRaids) {
+				Raid.Member.create(
+					CustomRaidMember.ICEOLOGER_INTERNAL_NAME,
+					FriendsAndFoesEntityTypes.ICEOLOGER.get(),
+					CustomRaidMember.ICEOLOGER_COUNT_IN_WAVE
+				);
 			}
 
-			FriendsAndFoesServer.init();
+			if (FriendsAndFoes.getConfig().enableIllusioner && FriendsAndFoes.getConfig().enableIllusionerInRaids) {
+				Raid.Member.create(
+					CustomRaidMember.ILLUSIONER_INTERNAL_NAME,
+					EntityType.ILLUSIONER,
+					CustomRaidMember.ILLUSIONER_COUNT_IN_WAVE
+				);
+			}
 		});
 	}
 
-	private static void initSpawners(final WorldEvent.Load event) {
+	private static void registerEntityAttributes(EntityAttributeCreationEvent event) {
+		for (Map.Entry<Supplier<? extends EntityType<? extends LivingEntity>>, Supplier<DefaultAttributeContainer.Builder>> entry : RegistryHelperImpl.ENTITY_ATTRIBUTES.entrySet()) {
+			event.put(entry.getKey().get(), entry.getValue().get().build());
+		}
+	}
+
+	private static void addItemsToTabs(CreativeModeTabEvent.BuildContents event) {
+		RegistryHelperImpl.ITEMS_TO_ADD_BEFORE.forEach((itemGroup, itemPairs) -> {
+			if (event.getTab() == itemGroup) {
+				itemPairs.forEach((item, before) -> {
+					event.getEntries().putBefore(before.getDefaultStack(), item.getDefaultStack(), ItemGroup.StackVisibility.PARENT_AND_SEARCH_TABS);
+				});
+			}
+		});
+
+		RegistryHelperImpl.ITEMS_TO_ADD_AFTER.forEach((itemGroup, itemPairs) -> {
+			if (event.getTab() == itemGroup) {
+				itemPairs.forEach((item, after) -> {
+					event.getEntries().putAfter(after.getDefaultStack(), item.getDefaultStack(), ItemGroup.StackVisibility.PARENT_AND_SEARCH_TABS);
+				});
+			}
+		});
+	}
+
+	private static void initSpawners(final LevelEvent.Load event) {
 		if (
-			event.getWorld().isClient()
-			|| event.getWorld().getDimension().getEffects() != DimensionType.OVERWORLD_ID
-		) {
+			event.getLevel().isClient()
+			|| ((ServerWorld) event.getLevel()).getDimensionKey() != DimensionTypes.OVERWORLD) {
 			return;
 		}
 
-		var world = event.getWorld().getServer().getOverworld();
+		var server = event.getLevel().getServer();
+
+		if (server == null) {
+			return;
+		}
+
+		var world = server.getOverworld();
 
 		if (world == null) {
 			return;
@@ -90,5 +152,9 @@ public class FriendsAndFoesForge
 		}
 
 		serverTickDeltaCounter.beginRenderTick(Util.getMeasuringTimeMs());
+	}
+
+	public static void onServerAboutToStartEvent(ServerAboutToStartEvent event) {
+		FriendsAndFoesStructurePoolElements.init(event.getServer());
 	}
 }

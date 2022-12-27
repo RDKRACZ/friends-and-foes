@@ -8,20 +8,20 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.random.Random;
 import net.minecraft.world.World;
 
-import java.util.Random;
-
 @SuppressWarnings("deprecation")
-public class OxidizableButtonBlock extends CopperButtonBlock implements Oxidizable
+public final class OxidizableButtonBlock extends CopperButtonBlock implements Oxidizable
 {
 	private final OxidationLevel OxidationLevel;
 
 	public OxidizableButtonBlock(
 		OxidationLevel OxidationLevel,
-		Settings settings
+		Settings settings,
+		int pressTicks
 	) {
-		super(settings);
+		super(settings, pressTicks);
 		this.OxidationLevel = OxidationLevel;
 	}
 
@@ -32,7 +32,6 @@ public class OxidizableButtonBlock extends CopperButtonBlock implements Oxidizab
 		BlockPos pos,
 		Random random
 	) {
-		super.randomTick(state, world, pos, random);
 		this.tickDegradation(state, world, pos, random);
 	}
 

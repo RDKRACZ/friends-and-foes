@@ -5,12 +5,11 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.util.math.random.Random;
 import net.minecraft.village.TradeOffer;
 import net.minecraft.village.TradeOffers;
 
-import java.util.Random;
-
-public class TradeOffersUtil
+public final class TradeOffersUtil
 {
 	public static class SellItemFactory implements TradeOffers.Factory
 	{
@@ -63,5 +62,8 @@ public class TradeOffersUtil
 			ItemStack itemStack = new ItemStack(this.buy, this.price);
 			return new TradeOffer(itemStack, new ItemStack(Items.EMERALD), this.maxUses, this.experience, this.multiplier);
 		}
+	}
+
+	private TradeOffersUtil() {
 	}
 }

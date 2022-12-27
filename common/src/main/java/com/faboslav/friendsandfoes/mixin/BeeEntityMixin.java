@@ -1,6 +1,6 @@
 package com.faboslav.friendsandfoes.mixin;
 
-import com.faboslav.friendsandfoes.entity.passive.ai.goal.BeePollinateMoobloomGoal;
+import com.faboslav.friendsandfoes.entity.ai.goal.BeePollinateMoobloomGoal;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.passive.AnimalEntity;
@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(BeeEntity.class)
 public abstract class BeeEntityMixin extends AnimalEntity
 {
-	BeePollinateMoobloomGoal pollinateMoobloomGoal;
+	private BeePollinateMoobloomGoal pollinateMoobloomGoal;
 
 	public BeeEntityMixin(
 		EntityType<? extends AnimalEntity> entityType,
@@ -28,27 +28,28 @@ public abstract class BeeEntityMixin extends AnimalEntity
 		at = @At(
 			value = "INVOKE",
 			target = "Lnet/minecraft/entity/ai/goal/GoalSelector;add(ILnet/minecraft/entity/ai/goal/Goal;)V",
-			ordinal = 4,
+			ordinal = 3,
 			shift = At.Shift.AFTER
 		),
 		method = "initGoals"
 	)
-	private void addPollinateMoobloomGoal(CallbackInfo ci) {
+	private void friendsandfoes_addPollinateMoobloomGoal(CallbackInfo ci) {
 		this.pollinateMoobloomGoal = new BeePollinateMoobloomGoal((BeeEntity) (Object) this, (BeeEntityAccessor) this);
 		this.goalSelector.add(3, this.pollinateMoobloomGoal);
 	}
 
-	@Inject(method = "damage", at = @At("HEAD"), cancellable = true)
-	public void damage(
+	@Inject(
+		method = "damage",
+		at = @At("HEAD")
+	)
+	public void friendsandfoes_tweakDamage(
 		DamageSource source,
 		float amount,
-		CallbackInfoReturnable<Boolean> info
+		CallbackInfoReturnable<Boolean> callbackInfo
 	) {
-		if (this.isInvulnerableTo(source)) {
-			info.setReturnValue(false);
-		} else {
+		if (this.isInvulnerableTo(source) == false) {
 			if (
-				this.world.isClient() == false
+				this.getWorld().isClient() == false
 				&& this.pollinateMoobloomGoal != null
 			) {
 				this.pollinateMoobloomGoal.cancel();

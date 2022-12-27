@@ -1,11 +1,13 @@
 package com.faboslav.friendsandfoes.mixin;
 
-import com.faboslav.friendsandfoes.init.ModEntity;
+import com.faboslav.friendsandfoes.init.FriendsAndFoesEntityTypes;
+import com.faboslav.friendsandfoes.tag.FriendsAndFoesTags;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.mob.PatrolEntity;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.registry.RegistryEntry;
+import net.minecraft.util.math.random.Random;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.spawner.PatrolSpawner;
 import org.spongepowered.asm.mixin.Mixin;
@@ -14,10 +16,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.Random;
-
 @Mixin(PatrolSpawner.class)
-public class PatrolSpawnerMixin
+public final class PatrolSpawnerMixin
 {
 	boolean isBiomeSpecificIllagerSpawned = false;
 
@@ -28,27 +28,21 @@ public class PatrolSpawnerMixin
 			value = "LOAD"
 		)
 	)
-	private PatrolEntity modifyPatrolEntity(
+	private PatrolEntity friendsandfoes_modifyPatrolEntity(
 		PatrolEntity patrolEntity,
 		ServerWorld world,
 		BlockPos pos,
 		Random random,
 		boolean captain
 	) {
-		RegistryEntry<Biome> registryEntry = world.getBiome(pos);
-		var category = Biome.getCategory(registryEntry);
+		RegistryEntry<Biome> biomeEntry = world.getBiome(pos);
 
-		if (category != Biome.Category.TAIGA || this.isBiomeSpecificIllagerSpawned) {
-			return patrolEntity;
-		}
-
-		this.isBiomeSpecificIllagerSpawned = true;
-		var precipitation = registryEntry.value().getPrecipitation();
-
-		if (precipitation == Biome.Precipitation.SNOW) {
-			patrolEntity = ModEntity.ICEOLOGER.get().create(world);
-		} else {
-			patrolEntity = EntityType.ILLUSIONER.create(world);
+		if (this.isBiomeSpecificIllagerSpawned == false) {
+			if (biomeEntry.isIn(FriendsAndFoesTags.HAS_ILLUSIONER)) {
+				patrolEntity = EntityType.ILLUSIONER.create(world);
+			} else if (biomeEntry.isIn(FriendsAndFoesTags.HAS_ICEOLOGER)) {
+				patrolEntity = FriendsAndFoesEntityTypes.ICEOLOGER.get().create(world);
+			}
 		}
 
 		return patrolEntity;
@@ -56,21 +50,18 @@ public class PatrolSpawnerMixin
 
 	@Inject(
 		method = "spawn",
-		at = @At("RETURN"),
-		cancellable = true
+		at = @At("RETURN")
 	)
-	private void resetBiomeSpecificIllagerSpawnFlag(
+	private void friendsandfoes_resetBiomeSpecificIllagerSpawnFlag(
 		ServerWorld world,
 		boolean spawnMonsters,
 		boolean spawnAnimals,
-		CallbackInfoReturnable<Integer> cir
+		CallbackInfoReturnable<Integer> callbackInfo
 	) {
-		var spawnerPatrolMembersCount = cir.getReturnValue();
+		var spawnerPatrolMembersCount = callbackInfo.getReturnValue();
 
 		if (spawnerPatrolMembersCount > 0) {
 			this.isBiomeSpecificIllagerSpawned = false;
 		}
-
-		cir.setReturnValue(spawnerPatrolMembersCount);
 	}
 }

@@ -24,10 +24,25 @@ configurations {
 }
 
 dependencies {
+	// Core dependencies
 	modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
-	modImplementation "com.github.Chocohead:Fabric-ASM:${rootProject.fabric_asm_version}"
 	modApi "net.fabricmc.fabric-api:fabric-api:${rootProject.fabric_api_version}"
-	modApi "dev.architectury:architectury-fabric:${rootProject.architectury_version}"
+
+	implementation("com.github.LlamaLad7:MixinExtras:${rootProject.mixin_extras_version}")
+	annotationProcessor("com.github.LlamaLad7:MixinExtras:${rootProject.mixin_extras_version}")
+	include("com.github.LlamaLad7:MixinExtras:${rootProject.mixin_extras_version}")
+
+	// Config dependencies
+	modImplementation("com.terraformersmc:modmenu:${project.mod_menu_version}") { transitive = false }
+	modImplementation("me.shedaniel.cloth:cloth-config:${rootProject.cloth_config_version}")
+	modImplementation("me.shedaniel.cloth:cloth-config-fabric:${rootProject.cloth_config_version}") { transitive = false }
+
+	// For faster development https://www.cursemaven.com/
+	// https://www.curseforge.com/minecraft/mc-mods/lazydfu/files
+	modRuntimeOnly "curse.maven:lazydfu-433518:3821870"
+	// https://www.curseforge.com/minecraft/mc-mods/starlight/files
+	modRuntimeOnly "curse.maven:starlight-521783:3835973"
+	modRuntimeOnly "curse.maven:disablecustomworldsadvice-401978:3827588"
 
 	common(project(path: ":common", configuration: "namedElements")) { transitive false }
 	shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive false }
@@ -42,11 +57,11 @@ processResources {
 
 	filesMatching("fabric.mod.json") {
 		expand([
-			'modId': rootProject.mod_id,
-			'modName': rootProject.mod_name,
+			'modId'         : rootProject.mod_id,
+			'modName'       : rootProject.mod_name,
 			'modDescription': rootProject.mod_description,
-			'modVersion': rootProject.mod_version,
-			'modAuthor': rootProject.mod_author
+			'modVersion'    : rootProject.mod_version,
+			'modAuthor'     : rootProject.mod_author
 		])
 	}
 }
@@ -86,6 +101,24 @@ repositories {
 		name = 'Fabric'
 		url = 'https://maven.fabricmc.net/'
 	}
+
+	maven {
+		name = "Modrinth"
+		url = "https://api.modrinth.com/maven"
+
+		content {
+			includeGroup "maven.modrinth"
+		}
+	}
+
+	maven {
+		url "https://maven.terraformersmc.com/releases/"
+		content {
+			includeGroup "com.terraformersmc"
+		}
+	}
+
+	maven { url "https://www.cursemaven.com" }
 }
 
 publishing {

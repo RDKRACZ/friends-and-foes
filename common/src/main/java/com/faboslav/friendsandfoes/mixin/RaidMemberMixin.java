@@ -8,7 +8,7 @@ import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.Slice;
 
 @Mixin(Raid.Member.class)
-public class RaidMemberMixin
+public final class RaidMemberMixin
 {
 	@ModifyArg(
 		method = "<clinit>",
@@ -24,11 +24,13 @@ public class RaidMemberMixin
 			ordinal = 0
 		)
 	)
-	private static int[] updateCountInWave(
+	private static int[] friendsandfoes_updateCountInWave(
 		int[] countInWave
 	) {
 		if (
-			FriendsAndFoes.getConfig().enableIllusionerInRaids
+			FriendsAndFoes.getConfig().enableIllusioner
+			|| FriendsAndFoes.getConfig().enableIllusionerInRaids
+			|| FriendsAndFoes.getConfig().enableIceologer
 			|| FriendsAndFoes.getConfig().enableIceologerInRaids
 		) {
 			return new int[]{0, 0, 0, 0, 0, 1, 1, 1};

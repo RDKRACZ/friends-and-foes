@@ -1,6 +1,6 @@
 package com.faboslav.friendsandfoes.config.omegaconfig;
 
-import com.faboslav.friendsandfoes.config.omegaconfig.api.Comment;
+import com.faboslav.friendsandfoes.config.annotation.Description;
 import com.faboslav.friendsandfoes.config.omegaconfig.api.Config;
 import com.faboslav.friendsandfoes.platform.ConfigDirectory;
 import com.google.gson.Gson;
@@ -18,10 +18,16 @@ import java.nio.file.Paths;
 import java.util.*;
 
 /**
- * Originally from ΩConfig(https://github.com/Draylar/omega-config) by Draylar.
- * Inspired by use in Repurposed Structures by TelepathicGrunt(https://github.com/TelepathicGrunt/RepurposedStructures)
+ * Originally from ΩConfig
+ *
+ * @author Draylar
+ * <a href="https://github.com/Draylar/omega-config">https://github.com/Draylar/omega-config</a>
+ * <p>
+ * Inspired by use in Repurposed Structures mod
+ * @author TelepathicGrunt
+ * <a href="https://github.com/TelepathicGrunt/RepurposedStructures">https://github.com/TelepathicGrunt/RepurposedStructures</a>
  */
-public class OmegaConfig
+public final class OmegaConfig
 {
 	private static final Logger LOGGER = LogManager.getLogger();
 
@@ -58,7 +64,8 @@ public class OmegaConfig
 			}
 
 			return config;
-		} catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException exception) {
+		} catch (NoSuchMethodException | InstantiationException | IllegalAccessException |
+				 InvocationTargetException exception) {
 			exception.printStackTrace();
 			throw new RuntimeException("No valid constructor found for: " + configClass.getName());
 		}
@@ -128,8 +135,8 @@ public class OmegaConfig
 
 		// Find comment
 		for (Annotation annotation : annotations) {
-			if (annotation instanceof Comment) {
-				keyToComments.put(fieldName, ((Comment) annotation).value());
+			if (annotation instanceof Description) {
+				//keyToComments.put(fieldName, ((Description) annotation).value());
 				break;
 			}
 		}

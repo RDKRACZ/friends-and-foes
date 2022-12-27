@@ -8,7 +8,7 @@ import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class FriendsAndFoes
+public final class FriendsAndFoes
 {
 	private static final FriendsAndFoesConfig CONFIG = OmegaConfig.register(FriendsAndFoesConfig.class);
 	private static final Logger LOGGER = LoggerFactory.getLogger(FriendsAndFoes.MOD_ID);
@@ -34,24 +34,25 @@ public class FriendsAndFoes
 		return LOGGER;
 	}
 
-	public static void initRegisters() {
-		ModBlocks.initRegister();
-		ModCriteria.init();
-		ModEntity.initRegister();
-		ModItems.initRegister();
-		ModSounds.initRegister();
-		ModVillagerProfessions.initRegister();
-		ModStructureFeatures.initRegister();
+	public static void init() {
+		FriendsAndFoesActivities.init();
+		FriendsAndFoesBlocks.init();
+		FriendsAndFoesCriteria.init();
+		FriendsAndFoesEntityTypes.init();
+		FriendsAndFoesItems.init();
+		FriendsAndFoesMemoryModuleTypes.init();
+		FriendsAndFoesPointOfInterestTypes.init();
+		FriendsAndFoesSoundEvents.init();
+		FriendsAndFoesStructureProcessorTypes.init();
+		FriendsAndFoesStructureTypes.init();
+		FriendsAndFoesVillagerProfessions.init();
 	}
 
-	public static void initCustomRegisters() {
-		ModBlocks.init();
-		ModEntity.init();
-		ModItems.init();
-		ModBlockEntityTypes.init();
-		ModSounds.init();
-		ModPointOfInterestTypes.init();
-		ModVillagerProfessions.init();
-		ModStructureFeatures.init();
+	public static void postInit() {
+		FriendsAndFoesBlocks.postInit();
+		FriendsAndFoesEntityTypes.postInit();
+		FriendsAndFoesItems.postInit();
+		FriendsAndFoesBlockEntityTypes.postInit();
+		FriendsAndFoesVillagerProfessions.postInit();
 	}
 }

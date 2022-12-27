@@ -13,6 +13,7 @@ loom {
 		convertAccessWideners = true
 		extraAccessWideners.add loom.accessWidenerPath.get().asFile.name
 		mixinConfig "friendsandfoes-common.mixins.json"
+		mixinConfig "friendsandfoes.mixins.json"
 	}
 }
 
@@ -27,16 +28,20 @@ configurations {
 	compileClasspath.extendsFrom common
 	runtimeClasspath.extendsFrom common
 	developmentForge.extendsFrom common
-	library
-	implementation.extendsFrom library
 }
 
 dependencies {
 	forge "net.minecraftforge:forge:${rootProject.forge_version}"
-	modApi "dev.architectury:architectury-forge:${rootProject.architectury_version}"
 
 	common(project(path: ":common", configuration: "namedElements")) { transitive false }
 	shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
+
+	implementation("com.github.LlamaLad7:MixinExtras:${rootProject.mixin_extras_version}")
+	annotationProcessor("com.github.LlamaLad7:MixinExtras:${rootProject.mixin_extras_version}")
+	include("com.github.LlamaLad7:MixinExtras:${rootProject.mixin_extras_version}")
+	forgeRuntimeLibrary("com.github.LlamaLad7:MixinExtras:${rootProject.mixin_extras_version}")
+
+	modImplementation("me.shedaniel.cloth:cloth-config-forge:${rootProject.cloth_config_version}")
 }
 
 processResources {

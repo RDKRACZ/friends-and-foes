@@ -1,6 +1,8 @@
 package com.faboslav.friendsandfoes.world.spawner;
 
 import com.faboslav.friendsandfoes.FriendsAndFoes;
+import com.faboslav.friendsandfoes.tag.FriendsAndFoesTags;
+import com.faboslav.friendsandfoes.util.RandomGenerator;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnReason;
@@ -8,16 +10,12 @@ import net.minecraft.entity.mob.PatrolEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos.Mutable;
-import net.minecraft.util.registry.RegistryEntry;
+import net.minecraft.util.math.random.Random;
 import net.minecraft.world.Heightmap;
 import net.minecraft.world.SpawnHelper;
-import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.Biome.Category;
 import net.minecraft.world.spawner.Spawner;
 
-import java.util.Random;
-
-public class IllusionerSpawner implements Spawner
+public final class IllusionerSpawner implements Spawner
 {
 	private int cooldown;
 
@@ -28,25 +26,26 @@ public class IllusionerSpawner implements Spawner
 	public int spawn(ServerWorld world, boolean spawnMonsters, boolean spawnAnimals) {
 		if (
 			spawnMonsters == false
+			|| FriendsAndFoes.getConfig().enableIllusioner == false
 			|| FriendsAndFoes.getConfig().enableIllusionerSpawn == false
 		) {
 			return 0;
 		}
 
-		Random random = world.random;
+		Random random = world.getRandom();
 		--this.cooldown;
 
 		if (this.cooldown > 0) {
 			return 0;
 		}
 
-		this.cooldown += 12000 + random.nextInt(1200);
+		this.cooldown += 12000 + random.nextInt(1000);
 		long l = world.getTimeOfDay() / 24000L;
 
 		if (
 			l < 5L
 			|| world.isDay() == false
-			|| random.nextInt(3) != 0
+			|| RandomGenerator.generateInt(0, 1) != 0
 		) {
 			return 0;
 		}
@@ -77,15 +76,7 @@ public class IllusionerSpawner implements Spawner
 			return 0;
 		}
 
-		RegistryEntry<Biome> registryEntry = world.getBiome(mutable);
-		Category category = Biome.getCategory(registryEntry);
-
-		var precipitation = registryEntry.value().getPrecipitation();
-
-		if (
-			category != Category.TAIGA
-			|| precipitation != Biome.Precipitation.RAIN
-		) {
+		if (world.getBiome(mutable).isIn(FriendsAndFoesTags.HAS_ILLUSIONER) == false) {
 			return 0;
 		}
 

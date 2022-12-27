@@ -1,15 +1,28 @@
-accessWidener v1 named
+accessWidener v2 named
 
 accessible class net/minecraft/village/raid/Raid$Member
 accessible class net/minecraft/entity/mob/IllusionerEntity$BlindTargetGoal
 accessible class net/minecraft/entity/mob/SpellcastingIllagerEntity$Spell
-accessible method net/minecraft/village/VillagerProfession <init> (Ljava/lang/String;Lnet/minecraft/world/poi/PointOfInterestType;Lcom/google/common/collect/ImmutableSet;Lcom/google/common/collect/ImmutableSet;Lnet/minecraft/sound/SoundEvent;)V
-accessible method net/minecraft/world/poi/PointOfInterestType <init> (Ljava/lang/String;Ljava/util/Set;II)V
+extendable class net/minecraft/world/gen/structure/JigsawStructure
 accessible field net/minecraft/world/poi/PointOfInterestType blockStates Ljava/util/Set;
 mutable field net/minecraft/world/poi/PointOfInterestType blockStates Ljava/util/Set;
 accessible field net/minecraft/world/poi/PointOfInterestType ticketCount I
 mutable field net/minecraft/world/poi/PointOfInterestType ticketCount I
-accessible field net/minecraft/world/poi/PointOfInterestType BLOCK_STATE_TO_POINT_OF_INTEREST_TYPE Ljava/util/Map;
-mutable field net/minecraft/world/poi/PointOfInterestType BLOCK_STATE_TO_POINT_OF_INTEREST_TYPE Ljava/util/Map;
+accessible field net/minecraft/world/poi/PointOfInterestTypes POI_STATES_TO_TYPE Ljava/util/Map;
+mutable field net/minecraft/world/poi/PointOfInterestTypes POI_STATES_TO_TYPE Ljava/util/Map;
 accessible field net/minecraft/block/entity/BlockEntityType blocks Ljava/util/Set;
 mutable field net/minecraft/block/entity/BlockEntityType blocks Ljava/util/Set;
+accessible method net/minecraft/world/poi/PointOfInterestTypes getStatesOfBlock (Lnet/minecraft/block/Block;)Ljava/util/Set;
+accessible field net/minecraft/entity/passive/BeeEntity pollinateGoal Lnet/minecraft/entity/passive/BeeEntity$PollinateGoal;
+accessible class net/minecraft/entity/passive/BeeEntity$PollinateGoal
+accessible method net/minecraft/entity/passive/BeeEntity$PollinateGoal isRunning ()Z
+accessible field net/minecraft/world/gen/structure/JigsawStructure startHeight Lnet/minecraft/world/gen/heightprovider/HeightProvider;
+accessible method net/minecraft/entity/ai/brain/MemoryModuleType <init> (Ljava/util/Optional;)V
+accessible method net/minecraft/entity/ai/brain/Activity <init> (Ljava/lang/String;)V
+accessible field net/minecraft/item/ItemGroups SPAWN_EGGS Lnet/minecraft/item/ItemGroup;
+accessible field net/minecraft/item/ItemGroups NATURAL Lnet/minecraft/item/ItemGroup;
+accessible field net/minecraft/item/ItemGroups FUNCTIONAL Lnet/minecraft/item/ItemGroup;
+accessible field net/minecraft/item/ItemGroups REDSTONE Lnet/minecraft/item/ItemGroup;
+accessible field net/minecraft/item/ItemGroups INGREDIENTS Lnet/minecraft/item/ItemGroup;
+accessible field net/minecraft/item/ItemGroups COMBAT Lnet/minecraft/item/ItemGroup;
+accessible method net/minecraft/sound/SoundEvent of (Lnet/minecraft/util/Identifier;)Lnet/minecraft/sound/SoundEvent;
